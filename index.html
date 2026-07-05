@@ -121,7 +121,13 @@ main{padding:14px 14px 90px;max-width:760px;margin:0 auto}
 .m-row button{flex:1;padding:13px;border-radius:10px;font-weight:600;font-size:14px;border:none}
 .b-ok{background:var(--tinta);color:#fff}
 .b-no{background:#fff;border:1.5px solid var(--linha)!important;color:var(--tinta)}
-#pickMap{height:300px;border-radius:12px;border:2px solid var(--tinta);margin-top:8px}
+.pick-tools{margin-top:6px}
+.loc-btn{width:100%;padding:12px;border:1.5px solid var(--tinta);background:var(--tinta);color:#fff;border-radius:10px;font-weight:600;font-size:13.5px;margin-bottom:8px}
+.loc-btn:disabled{opacity:.6}
+.busca-row{display:flex;gap:8px}
+.busca-row input{flex:1;padding:10px 12px;border:1.5px solid var(--linha);border-radius:10px;background:#fff}
+.busca-row button{border:1.5px solid var(--tinta);background:#fff;color:var(--tinta);border-radius:10px;padding:0 16px;font-weight:600;font-size:13px}
+#pickMap{height:280px;border-radius:12px;border:2px solid var(--tinta);margin-top:8px}
 .toast{position:fixed;bottom:86px;left:50%;transform:translateX(-50%);background:var(--tinta);color:#fff;padding:11px 20px;border-radius:30px;font-size:13.5px;z-index:8000;display:none;box-shadow:0 6px 20px rgba(0,0,0,.3);white-space:nowrap}
 .spin{display:inline-block;width:14px;height:14px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:sp 0.8s linear infinite;vertical-align:-2px;margin-right:6px}
 @keyframes sp{to{transform:rotate(360deg)}}
@@ -226,9 +232,16 @@ main{padding:14px 14px 90px;max-width:760px;margin:0 auto}
 <!-- MODAL ESCOLHER NO MAPA -->
 <div class="modal" id="mPick">
   <div class="m-box">
-    <h3>Toque no mapa para marcar o lugar</h3>
+    <h3>Marcar o lugar</h3>
+    <div class="pick-tools">
+      <button class="loc-btn" id="btnGeo" onclick="usarLocalizacaoAtual()">📍 Usar minha localização atual</button>
+      <div class="busca-row">
+        <input type="text" id="pickBusca" placeholder="Ou digite um lugar (ex.: Bonito-MS)">
+        <button onclick="buscarEndereco()">Buscar</button>
+      </div>
+    </div>
     <div id="pickMap"></div>
-    <div style="font-family:var(--mono);font-size:11px;color:var(--tinta2);margin-top:8px" id="pickCoords">—</div>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--tinta2);margin-top:8px" id="pickCoords">Toque no mapa, busque um lugar, ou use sua localização</div>
     <div class="m-row">
       <button class="b-no" onclick="fechar('mPick')">Cancelar</button>
       <button class="b-ok" onclick="confirmarPick()">Usar este ponto</button>
@@ -397,7 +410,7 @@ function renderFila(){
         <div style="font-family:var(--mono);font-size:10.5px;color:var(--tinta2)">${fmtData(f.ts)}</div>
         ${f.lat!=null
           ? `<div class="gps-ok">📍 ${f.lat.toFixed(5)}, ${f.lng.toFixed(5)} ${f.exif?'(automático)':'(manual)'}</div>`
-          : `<div class="gps-no">Sem GPS na foto — <button onclick="abrirPick(${i})">marcar no mapa</button></div>`}
+          : `<div class="gps-no">Sem GPS — <button onclick="abrirPick(${i})">marcar no mapa</button> · <button onclick="geoRapida(${i})">usar minha localização agora</button></div>`}
       </div>`;
     box.appendChild(d);
   });
@@ -443,7 +456,8 @@ async function nomeDoLugar(lat,lng){
 function abrirPick(i){
   pickTarget = i; pickLatLng = null;
   document.getElementById('mPick').classList.add('on');
-  document.getElementById('pickCoords').textContent = 'Toque no mapa';
+  document.getElementById('pickBusca').value = '';
+  document.getElementById('pickCoords').textContent = 'Toque no mapa, busque um lugar, ou use sua localização';
   setTimeout(()=>{
     if(!pickMapObj){
       pickMapObj = L.map('pickMap').setView([-16.07,-57.68], 4);
@@ -457,6 +471,62 @@ function abrirPick(i){
     }
     pickMapObj.invalidateSize();
   }, 120);
+}
+function usarLocalizacaoAtual(){
+  if(!navigator.geolocation){ toast('Seu navegador não tem GPS disponível'); return; }
+  const btn = document.getElementById('btnGeo');
+  btn.disabled = true; btn.innerHTML = '<span class="spin"></span>Localizando...';
+  navigator.geolocation.getCurrentPosition(
+    pos=>{
+      const {latitude, longitude} = pos.coords;
+      pickLatLng = L.latLng(latitude, longitude);
+      if(pickMarker) pickMapObj.removeLayer(pickMarker);
+      pickMarker = L.marker(pickLatLng).addTo(pickMapObj);
+      pickMapObj.setView(pickLatLng, 15);
+      document.getElementById('pickCoords').textContent = latitude.toFixed(5)+', '+longitude.toFixed(5)+' (localização atual)';
+      btn.disabled = false; btn.innerHTML = '📍 Usar minha localização atual';
+    },
+    err=>{
+      btn.disabled = false; btn.innerHTML = '📍 Usar minha localização atual';
+      const msgs = {1:'Você negou o acesso à localização — ative nas permissões do site', 2:'Não deu pra pegar a localização agora', 3:'Demorou demais pra responder, tenta de novo'};
+      toast(msgs[err.code] || 'Erro ao pegar localização');
+    },
+    {enableHighAccuracy:true, timeout:12000, maximumAge:60000}
+  );
+}
+async function buscarEndereco(){
+  const q = document.getElementById('pickBusca').value.trim();
+  if(!q){ toast('Digite um lugar pra buscar'); return; }
+  toast('Buscando...');
+  try{
+    const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=1&accept-language=pt-BR`);
+    const j = await r.json();
+    if(!j.length){ toast('Lugar não encontrado — tenta ser mais específico'); return; }
+    const {lat, lon, display_name} = j[0];
+    pickLatLng = L.latLng(parseFloat(lat), parseFloat(lon));
+    if(pickMarker) pickMapObj.removeLayer(pickMarker);
+    pickMarker = L.marker(pickLatLng).addTo(pickMapObj);
+    pickMapObj.setView(pickLatLng, 13);
+    document.getElementById('pickCoords').textContent = parseFloat(lat).toFixed(5)+', '+parseFloat(lon).toFixed(5)+' — '+display_name.split(',').slice(0,2).join(', ');
+  }catch(e){ toast('Erro na busca — verifica a internet'); }
+}
+function geoRapida(i){
+  if(!navigator.geolocation){ toast('Seu navegador não tem GPS disponível'); return; }
+  toast('Pegando sua localização...');
+  navigator.geolocation.getCurrentPosition(
+    pos=>{
+      fila[i].lat = pos.coords.latitude;
+      fila[i].lng = pos.coords.longitude;
+      fila[i].exif = false;
+      renderFila();
+      toast('Localização adicionada');
+    },
+    err=>{
+      const msgs = {1:'Você negou o acesso à localização', 2:'Não deu pra pegar a localização', 3:'Demorou demais, tenta de novo'};
+      toast(msgs[err.code] || 'Erro ao pegar localização');
+    },
+    {enableHighAccuracy:true, timeout:12000, maximumAge:60000}
+  );
 }
 async function confirmarPick(){
   if(!pickLatLng){ toast('Toque no mapa primeiro'); return; }
@@ -603,6 +673,7 @@ function fmtDiaISO(iso){
 }
 document.querySelectorAll('.modal').forEach(m=>m.addEventListener('click', e=>{ if(e.target===m) m.classList.remove('on'); }));
 document.getElementById('gName').addEventListener('keydown', e=>{ if(e.key==='Enter') entrar(); });
+document.getElementById('pickBusca').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); buscarEndereco(); } });
 </script>
 </body>
 </html>

@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Hospício Bühler-Sobreira — Diário de Viagem</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&family=Sora:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --papel:#F2F6F5;
+  --tinta:#16324A;
+  --tinta2:#3D5A73;
+  --carimbo:#D33F2E;
+  --sol:#F4B942;
+  --verde:#2E7D5B;
+  --card:#FFFFFF;
+  --linha:#D7E0DE;
+  --disp:'Bricolage Grotesque',sans-serif;
+  --body:'Sora',sans-serif;
+  --mono:'IBM Plex Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:var(--body);background:var(--papel);color:var(--tinta);min-height:100vh;font-size:15px}
+button{font-family:var(--body);cursor:pointer}
+input,textarea,select{font-family:var(--body);font-size:15px}
+
+/* ---------- PORTÃO (senha) ---------- */
+#gate{position:fixed;inset:0;background:var(--tinta);display:flex;align-items:center;justify-content:center;z-index:9000;padding:24px}
+.passaporte{background:var(--papel);border-radius:14px;padding:34px 26px;max-width:360px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.stamp-title{display:inline-block;border:3px solid var(--carimbo);color:var(--carimbo);border-radius:8px;padding:8px 16px;transform:rotate(-3deg);font-family:var(--disp);font-weight:800;font-size:20px;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px}
+.passaporte h1{font-family:var(--disp);font-weight:800;font-size:26px;line-height:1.15;margin:12px 0 4px}
+.passaporte p{color:var(--tinta2);font-size:13px;margin-bottom:20px}
+.passaporte input{width:100%;padding:13px 14px;border:2px solid var(--linha);border-radius:10px;margin-bottom:10px;background:#fff}
+.passaporte input:focus{outline:none;border-color:var(--tinta)}
+.btn-main{width:100%;padding:14px;border:none;border-radius:10px;background:var(--carimbo);color:#fff;font-weight:600;font-size:15px}
+.btn-main:active{transform:scale(.98)}
+#gateErr{color:var(--carimbo);font-size:13px;margin-top:10px;display:none}
+
+/* ---------- CABEÇALHO ---------- */
+header{background:var(--tinta);color:#fff;padding:14px 16px 12px;position:sticky;top:0;z-index:1200}
+header .eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--sol);text-transform:uppercase}
+header h1{font-family:var(--disp);font-weight:800;font-size:20px;line-height:1.1}
+header .who{font-size:11px;color:#B9CBD8;margin-top:2px}
+
+/* ---------- ABAS ---------- */
+nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--linha);display:flex;z-index:1200;padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;background:none;border:none;padding:10px 4px 8px;font-size:11px;color:var(--tinta2);display:flex;flex-direction:column;align-items:center;gap:3px;font-weight:600}
+nav button.on{color:var(--carimbo)}
+nav button svg{width:22px;height:22px}
+main{padding:14px 14px 90px;max-width:760px;margin:0 auto}
+.tab{display:none}
+.tab.on{display:block}
+
+/* ---------- MAPA ---------- */
+#map{height:calc(100vh - 210px);min-height:380px;border-radius:14px;border:2px solid var(--tinta);z-index:1}
+.map-bar{display:flex;gap:8px;margin-bottom:10px;align-items:center;flex-wrap:wrap}
+.chip{border:1.5px solid var(--tinta);background:#fff;color:var(--tinta);border-radius:20px;padding:7px 14px;font-size:12.5px;font-weight:600}
+.chip.on{background:var(--tinta);color:#fff}
+.leaflet-popup-content{font-family:var(--body);margin:10px}
+.pop img{width:100%;border-radius:8px;margin-bottom:6px}
+.pop b{font-family:var(--disp)}
+.pop .m{font-family:var(--mono);font-size:10.5px;color:var(--tinta2);display:block;margin-top:3px}
+
+/* ---------- CARDS / TIMELINE ---------- */
+.dia-h{display:flex;align-items:center;gap:10px;margin:22px 0 10px}
+.dia-h .d{font-family:var(--disp);font-weight:800;font-size:15px;white-space:nowrap}
+.dia-h .l{flex:1;height:1px;background:var(--linha)}
+.foto-card{background:var(--card);border-radius:14px;overflow:hidden;margin-bottom:14px;box-shadow:0 2px 10px rgba(22,50,74,.07);position:relative}
+.foto-card img{width:100%;display:block}
+.f-body{padding:12px 14px 14px}
+.f-title{font-family:var(--disp);font-weight:800;font-size:17px;line-height:1.2}
+.f-meta{font-family:var(--mono);font-size:11px;color:var(--tinta2);margin-top:5px;line-height:1.7;word-break:break-all}
+.f-author{display:inline-block;background:var(--sol);color:var(--tinta);border-radius:20px;padding:2px 10px;font-size:11px;font-weight:600;margin-top:8px}
+.f-place{font-size:12.5px;color:var(--verde);font-weight:600;margin-top:4px}
+.f-acts{display:flex;gap:8px;margin-top:10px}
+.f-acts button{flex:1;border:1.5px solid var(--linha);background:#fff;border-radius:8px;padding:8px;font-size:12px;font-weight:600;color:var(--tinta)}
+.f-acts .del{color:var(--carimbo);border-color:#F0C8C2}
+.stamp{position:absolute;top:10px;right:10px;border:2.5px solid var(--carimbo);color:var(--carimbo);background:rgba(255,255,255,.88);border-radius:6px;padding:4px 9px;transform:rotate(4deg);font-family:var(--mono);font-size:11px;font-weight:500}
+.nofoto{text-align:center;color:var(--tinta2);padding:50px 20px;font-size:14px;line-height:1.6}
+.nofoto b{font-family:var(--disp);display:block;font-size:18px;color:var(--tinta);margin-bottom:6px}
+
+/* ---------- ROTEIRO ---------- */
+.rot-card{background:var(--card);border-radius:14px;padding:14px 16px;margin-bottom:12px;border-left:5px solid var(--sol);box-shadow:0 2px 10px rgba(22,50,74,.07)}
+.rot-card.passado{border-left-color:var(--linha);opacity:.75}
+.rot-card.hoje{border-left-color:var(--carimbo)}
+.rot-data{font-family:var(--mono);font-size:11px;color:var(--tinta2);letter-spacing:1px;text-transform:uppercase}
+.rot-cid{font-family:var(--disp);font-weight:800;font-size:18px;margin:2px 0 4px}
+.rot-txt{font-size:13.5px;color:var(--tinta2);white-space:pre-wrap;line-height:1.55}
+.rot-hosp{font-size:12.5px;margin-top:8px;color:var(--verde);font-weight:600}
+.rot-acts{display:flex;gap:8px;margin-top:10px}
+.rot-acts button{border:1.5px solid var(--linha);background:#fff;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:600;color:var(--tinta)}
+.hoje-tag{display:inline-block;background:var(--carimbo);color:#fff;border-radius:4px;font-size:10px;padding:2px 7px;font-family:var(--mono);margin-left:8px;vertical-align:middle}
+.btn-add{width:100%;padding:14px;border:2px dashed var(--tinta2);background:none;border-radius:12px;color:var(--tinta);font-weight:600;font-size:14px;margin-top:4px}
+
+/* ---------- UPLOAD ---------- */
+.up-zone{border:2.5px dashed var(--tinta2);border-radius:14px;padding:36px 20px;text-align:center;background:#fff;color:var(--tinta2)}
+.up-zone b{font-family:var(--disp);display:block;color:var(--tinta);font-size:17px;margin-bottom:4px}
+.up-zone small{font-size:12px;line-height:1.5;display:block;margin-top:8px}
+.up-item{background:#fff;border-radius:14px;padding:12px;margin-top:12px;display:flex;gap:12px;box-shadow:0 2px 10px rgba(22,50,74,.07)}
+.up-item img{width:86px;height:86px;object-fit:cover;border-radius:10px;flex-shrink:0}
+.up-item .inf{flex:1;min-width:0}
+.up-item input{width:100%;padding:9px 10px;border:1.5px solid var(--linha);border-radius:8px;margin-bottom:6px}
+.gps-ok{font-family:var(--mono);font-size:10.5px;color:var(--verde)}
+.gps-no{font-family:var(--mono);font-size:10.5px;color:var(--carimbo)}
+.gps-no button{border:none;background:none;color:var(--tinta);text-decoration:underline;font-family:var(--mono);font-size:10.5px;padding:0}
+.up-send{position:sticky;bottom:78px;margin-top:14px}
+.aviso{background:#FFF6E3;border:1.5px solid var(--sol);border-radius:12px;padding:12px 14px;font-size:12.5px;line-height:1.55;margin-bottom:14px;color:#6B5410}
+.aviso b{display:block;margin-bottom:2px}
+
+/* ---------- MODAIS ---------- */
+.modal{position:fixed;inset:0;background:rgba(22,50,74,.55);z-index:5000;display:none;align-items:flex-end;justify-content:center}
+.modal.on{display:flex}
+.m-box{background:var(--papel);border-radius:18px 18px 0 0;width:100%;max-width:560px;max-height:88vh;overflow-y:auto;padding:20px 18px 26px}
+.m-box h3{font-family:var(--disp);font-weight:800;font-size:19px;margin-bottom:14px}
+.m-box label{font-size:12px;font-weight:600;color:var(--tinta2);display:block;margin:10px 0 4px;text-transform:uppercase;letter-spacing:.5px}
+.m-box input,.m-box textarea{width:100%;padding:11px 12px;border:1.5px solid var(--linha);border-radius:10px;background:#fff}
+.m-box textarea{min-height:90px;resize:vertical}
+.m-row{display:flex;gap:10px;margin-top:18px}
+.m-row button{flex:1;padding:13px;border-radius:10px;font-weight:600;font-size:14px;border:none}
+.b-ok{background:var(--tinta);color:#fff}
+.b-no{background:#fff;border:1.5px solid var(--linha)!important;color:var(--tinta)}
+#pickMap{height:300px;border-radius:12px;border:2px solid var(--tinta);margin-top:8px}
+.toast{position:fixed;bottom:86px;left:50%;transform:translateX(-50%);background:var(--tinta);color:#fff;padding:11px 20px;border-radius:30px;font-size:13.5px;z-index:8000;display:none;box-shadow:0 6px 20px rgba(0,0,0,.3);white-space:nowrap}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:sp 0.8s linear infinite;vertical-align:-2px;margin-right:6px}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.spin{animation:none}}
+</style>
+</head>
+<body>
+
+<!-- PORTÃO -->
+<div id="gate">
+  <div class="passaporte">
+    <div class="stamp-title">Hospício</div>
+    <h1>Bühler-Sobreira</h1>
+    <p>Diário de viagem da família · digite a senha e seu nome</p>
+    <input type="password" id="gPass" placeholder="Senha da família" autocomplete="off">
+    <input type="text" id="gName" placeholder="Seu nome (ex.: Ernandes)" autocomplete="off">
+    <button class="btn-main" onclick="entrar()">Abrir o passaporte</button>
+    <div id="gateErr">Senha errada. Pergunta no grupo da família 😄</div>
+  </div>
+</div>
+
+<header>
+  <div class="eyebrow">Diário de Viagem</div>
+  <h1>Hospício Bühler-Sobreira</h1>
+  <div class="who" id="whoami"></div>
+</header>
+
+<main>
+  <!-- MAPA -->
+  <section class="tab on" id="tab-mapa">
+    <div class="map-bar">
+      <button class="chip on" id="chipTrajeto" onclick="toggleTrajeto()">Trajeto ✓</button>
+      <span style="font-family:var(--mono);font-size:11px;color:var(--tinta2)" id="mapCount"></span>
+    </div>
+    <div id="map"></div>
+  </section>
+
+  <!-- ROTEIRO -->
+  <section class="tab" id="tab-roteiro">
+    <div id="rotLista"></div>
+    <button class="btn-add" onclick="abrirRoteiro()">+ Adicionar dia ao roteiro</button>
+  </section>
+
+  <!-- FOTOS -->
+  <section class="tab" id="tab-fotos">
+    <div id="fotoLista"></div>
+  </section>
+
+  <!-- ENVIAR -->
+  <section class="tab" id="tab-enviar">
+    <div class="aviso"><b>⚠️ Regra de ouro da família</b>Suba as fotos direto da galeria do celular. Foto que veio pelo WhatsApp perde o GPS e a data — se acontecer, dá para marcar o lugar no mapa manualmente.</div>
+    <label style="display:block">
+      <div class="up-zone">
+        <b>Toque para escolher fotos</b>
+        Pode selecionar várias de uma vez
+        <small>Coordenadas e data são lidas automaticamente da foto (EXIF). Você só dá o título.</small>
+      </div>
+      <input type="file" id="fileIn" accept="image/*" multiple style="display:none" onchange="lerArquivos(this.files)">
+    </label>
+    <div id="upLista"></div>
+    <div class="up-send" id="upSendWrap" style="display:none">
+      <button class="btn-main" id="btnEnviar" onclick="enviarTudo()">Enviar fotos</button>
+    </div>
+  </section>
+</main>
+
+<nav>
+  <button class="on" data-t="mapa" onclick="aba('mapa')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 20l-6-3V4l6 3 6-3 6 3v13l-6-3-6 3z"/><path d="M9 7v13M15 4v13"/></svg>Mapa</button>
+  <button data-t="roteiro" onclick="aba('roteiro')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Roteiro</button>
+  <button data-t="fotos" onclick="aba('fotos')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>Fotos</button>
+  <button data-t="enviar" onclick="aba('enviar')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Enviar</button>
+</nav>
+
+<!-- MODAL ROTEIRO -->
+<div class="modal" id="mRot">
+  <div class="m-box">
+    <h3 id="mRotTitle">Novo dia do roteiro</h3>
+    <label>Data</label><input type="date" id="rData">
+    <label>Cidade / lugar</label><input type="text" id="rCidade" placeholder="Ex.: Bonito-MS">
+    <label>Atividades do dia</label><textarea id="rTxt" placeholder="Ex.: manhã — gruta do Lago Azul&#10;tarde — flutuação no rio da Prata"></textarea>
+    <label>Hospedagem (opcional)</label><input type="text" id="rHosp" placeholder="Ex.: Pousada Águas de Bonito">
+    <div class="m-row">
+      <button class="b-no" onclick="fechar('mRot')">Cancelar</button>
+      <button class="b-ok" onclick="salvarRoteiro()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDITAR FOTO -->
+<div class="modal" id="mFoto">
+  <div class="m-box">
+    <h3>Editar foto</h3>
+    <label>Título</label><input type="text" id="eTitulo">
+    <label>Lugar (nome)</label><input type="text" id="eLugar" placeholder="Ex.: Praça central de Bonito">
+    <div class="m-row">
+      <button class="b-no" onclick="fechar('mFoto')">Cancelar</button>
+      <button class="b-ok" onclick="salvarEdicao()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ESCOLHER NO MAPA -->
+<div class="modal" id="mPick">
+  <div class="m-box">
+    <h3>Toque no mapa para marcar o lugar</h3>
+    <div id="pickMap"></div>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--tinta2);margin-top:8px" id="pickCoords">—</div>
+    <div class="m-row">
+      <button class="b-no" onclick="fechar('mPick')">Cancelar</button>
+      <button class="b-ok" onclick="confirmarPick()">Usar este ponto</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exifr@7.1.3/dist/full.umd.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script>
+/* ============ CONFIG ============ */
+const SENHA = "hospicio2026";           // <-- troque aqui a senha da família
+const firebaseConfig = {
+  apiKey: "AIzaSyBzL_Pic_2JETKOqs4tD9EC2TRynEFaZG4",
+  authDomain: "som-ambiental.firebaseapp.com",
+  databaseURL: "https://som-ambiental-default-rtdb.firebaseio.com",
+  projectId: "som-ambiental",
+  storageBucket: "som-ambiental.firebasestorage.app",
+  messagingSenderId: "1008024969251",
+  appId: "1:1008024969251:web:c40b04fbe48dd578a05196"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const REF_FOTOS = db.ref("hospicio-bs/fotos");
+const REF_ROT   = db.ref("hospicio-bs/roteiro");
+
+/* ============ ESTADO ============ */
+let fotos = {};        // id -> foto
+let roteiro = {};      // id -> dia
+let fila = [];         // uploads pendentes
+let map, pickMapObj, pickMarker, pickLatLng = null, pickTarget = null;
+let markersLayer, trajetoLine, mostrarTrajeto = true;
+let editId = null, rotEditId = null;
+
+/* ============ PORTÃO ============ */
+function entrar(){
+  const p = document.getElementById('gPass').value.trim();
+  const n = document.getElementById('gName').value.trim();
+  if(p !== SENHA){ document.getElementById('gateErr').style.display='block'; return; }
+  if(!n){ document.getElementById('gName').focus(); return; }
+  localStorage.setItem('hbs_nome', n);
+  localStorage.setItem('hbs_ok', '1');
+  boot();
+}
+function boot(){
+  document.getElementById('gate').style.display='none';
+  document.getElementById('whoami').textContent = 'Viajante: ' + (localStorage.getItem('hbs_nome')||'');
+  iniciarMapa();
+  ouvirFirebase();
+}
+if(localStorage.getItem('hbs_ok')==='1' && localStorage.getItem('hbs_nome')){
+  window.addEventListener('load', boot);
+}
+
+/* ============ ABAS ============ */
+function aba(t){
+  document.querySelectorAll('.tab').forEach(e=>e.classList.remove('on'));
+  document.getElementById('tab-'+t).classList.add('on');
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on', b.dataset.t===t));
+  if(t==='mapa' && map) setTimeout(()=>map.invalidateSize(), 60);
+}
+
+/* ============ MAPA ============ */
+function iniciarMapa(){
+  if(map) return;
+  map = L.map('map').setView([-16.07, -57.68], 5);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19, attribution:'© OpenStreetMap'}).addTo(map);
+  markersLayer = L.layerGroup().addTo(map);
+  desenharMapa();
+}
+function toggleTrajeto(){
+  mostrarTrajeto = !mostrarTrajeto;
+  document.getElementById('chipTrajeto').classList.toggle('on', mostrarTrajeto);
+  document.getElementById('chipTrajeto').textContent = mostrarTrajeto ? 'Trajeto ✓' : 'Trajeto';
+  desenharMapa();
+}
+function desenharMapa(){
+  if(!map) return;
+  markersLayer.clearLayers();
+  if(trajetoLine){ map.removeLayer(trajetoLine); trajetoLine = null; }
+  const comGps = Object.entries(fotos)
+    .filter(([_,f]) => f.lat != null && f.lng != null)
+    .sort((a,b) => (a[1].ts||0) - (b[1].ts||0));
+  document.getElementById('mapCount').textContent = comGps.length + ' foto(s) no mapa';
+  const pts = [];
+  comGps.forEach(([id,f])=>{
+    pts.push([f.lat, f.lng]);
+    const mk = L.marker([f.lat, f.lng]);
+    mk.bindPopup(`<div class="pop"><img src="${f.img}"><b>${esc(f.titulo)||'Sem título'}</b><span class="m">${fmtData(f.ts)} · ${f.autor?esc(f.autor):''}</span><span class="m">${f.lat.toFixed(5)}, ${f.lng.toFixed(5)}</span>${f.lugar?`<span class="m" style="color:var(--verde)">${esc(f.lugar)}</span>`:''}</div>`);
+    markersLayer.addLayer(mk);
+  });
+  if(mostrarTrajeto && pts.length > 1){
+    trajetoLine = L.polyline(pts, {color:'#D33F2E', weight:3, dashArray:'6 8'}).addTo(map);
+  }
+  if(pts.length){ map.fitBounds(L.latLngBounds(pts).pad(0.2)); }
+}
+function verNoMapa(id){
+  const f = fotos[id];
+  if(!f || f.lat==null) return;
+  aba('mapa');
+  setTimeout(()=>{ map.setView([f.lat,f.lng], 14); }, 150);
+}
+
+/* ============ FIREBASE ============ */
+function ouvirFirebase(){
+  REF_FOTOS.on('value', s=>{
+    fotos = s.val() || {};
+    renderFotos();
+    desenharMapa();
+  });
+  REF_ROT.on('value', s=>{
+    roteiro = s.val() || {};
+    renderRoteiro();
+  });
+}
+
+/* ============ UPLOAD ============ */
+async function lerArquivos(files){
+  if(!files || !files.length) return;
+  toast('Lendo ' + files.length + ' foto(s)...');
+  for(const file of files){
+    let gps = null, dt = null;
+    try{
+      const ex = await exifr.parse(file, {gps:true, pick:['DateTimeOriginal','CreateDate','latitude','longitude']});
+      if(ex){
+        if(ex.latitude != null && ex.longitude != null) gps = {lat: ex.latitude, lng: ex.longitude};
+        dt = ex.DateTimeOriginal || ex.CreateDate || null;
+      }
+    }catch(e){ console.warn('EXIF falhou', e); }
+    const ts = dt ? new Date(dt).getTime() : (file.lastModified || Date.now());
+    const img = await comprimir(file);
+    fila.push({img, ts, lat: gps?gps.lat:null, lng: gps?gps.lng:null, titulo:'', exif: !!gps});
+  }
+  renderFila();
+  document.getElementById('fileIn').value = '';
+}
+function comprimir(file){
+  return new Promise((res, rej)=>{
+    const url = URL.createObjectURL(file);
+    const im = new Image();
+    im.onload = ()=>{
+      const MAX = 1280;
+      let w = im.width, h = im.height;
+      if(Math.max(w,h) > MAX){ const k = MAX/Math.max(w,h); w = Math.round(w*k); h = Math.round(h*k); }
+      const c = document.createElement('canvas'); c.width=w; c.height=h;
+      c.getContext('2d').drawImage(im,0,0,w,h);
+      URL.revokeObjectURL(url);
+      res(c.toDataURL('image/jpeg', 0.72));
+    };
+    im.onerror = ()=>{ URL.revokeObjectURL(url); rej(new Error('imagem inválida')); };
+    im.src = url;
+  });
+}
+function renderFila(){
+  const box = document.getElementById('upLista');
+  box.innerHTML = '';
+  fila.forEach((f,i)=>{
+    const d = document.createElement('div');
+    d.className = 'up-item';
+    d.innerHTML = `<img src="${f.img}">
+      <div class="inf">
+        <input type="text" placeholder="Título da foto" value="${esc(f.titulo)}" oninput="fila[${i}].titulo=this.value">
+        <div style="font-family:var(--mono);font-size:10.5px;color:var(--tinta2)">${fmtData(f.ts)}</div>
+        ${f.lat!=null
+          ? `<div class="gps-ok">📍 ${f.lat.toFixed(5)}, ${f.lng.toFixed(5)} ${f.exif?'(automático)':'(manual)'}</div>`
+          : `<div class="gps-no">Sem GPS na foto — <button onclick="abrirPick(${i})">marcar no mapa</button></div>`}
+      </div>`;
+    box.appendChild(d);
+  });
+  document.getElementById('upSendWrap').style.display = fila.length ? 'block' : 'none';
+  document.getElementById('btnEnviar').textContent = 'Enviar ' + fila.length + ' foto(s)';
+}
+async function enviarTudo(){
+  if(!fila.length) return;
+  const btn = document.getElementById('btnEnviar');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span>Enviando...';
+  const autor = localStorage.getItem('hbs_nome') || 'Família';
+  try{
+    for(const f of fila){
+      let lugar = '';
+      if(f.lat != null){ lugar = await nomeDoLugar(f.lat, f.lng); }
+      await REF_FOTOS.push({
+        img: f.img, ts: f.ts, lat: f.lat, lng: f.lng,
+        titulo: f.titulo || '', autor, lugar,
+        enviadoEm: Date.now()
+      });
+    }
+    toast('✓ ' + fila.length + ' foto(s) enviadas!');
+    fila = [];
+    renderFila();
+    aba('fotos');
+  }catch(e){
+    console.error(e);
+    toast('Erro ao enviar — tenta de novo');
+  }
+  btn.disabled = false;
+}
+async function nomeDoLugar(lat,lng){
+  try{
+    const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=13&accept-language=pt-BR`);
+    const j = await r.json();
+    const a = j.address || {};
+    return [a.city||a.town||a.village||a.municipality, a.state, a.country].filter(Boolean).join(', ');
+  }catch(e){ return ''; }
+}
+
+/* ============ PICK NO MAPA ============ */
+function abrirPick(i){
+  pickTarget = i; pickLatLng = null;
+  document.getElementById('mPick').classList.add('on');
+  document.getElementById('pickCoords').textContent = 'Toque no mapa';
+  setTimeout(()=>{
+    if(!pickMapObj){
+      pickMapObj = L.map('pickMap').setView([-16.07,-57.68], 4);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(pickMapObj);
+      pickMapObj.on('click', e=>{
+        pickLatLng = e.latlng;
+        if(pickMarker) pickMapObj.removeLayer(pickMarker);
+        pickMarker = L.marker(e.latlng).addTo(pickMapObj);
+        document.getElementById('pickCoords').textContent = e.latlng.lat.toFixed(5)+', '+e.latlng.lng.toFixed(5);
+      });
+    }
+    pickMapObj.invalidateSize();
+  }, 120);
+}
+async function confirmarPick(){
+  if(!pickLatLng){ toast('Toque no mapa primeiro'); return; }
+  if(pickTarget !== null && typeof pickTarget === 'number'){
+    fila[pickTarget].lat = pickLatLng.lat;
+    fila[pickTarget].lng = pickLatLng.lng;
+    fila[pickTarget].exif = false;
+    renderFila();
+  } else if(typeof pickTarget === 'string'){
+    const lugar = await nomeDoLugar(pickLatLng.lat, pickLatLng.lng);
+    await REF_FOTOS.child(pickTarget).update({lat: pickLatLng.lat, lng: pickLatLng.lng, lugar});
+    toast('Localização atualizada');
+  }
+  fechar('mPick');
+}
+
+/* ============ GALERIA ============ */
+function renderFotos(){
+  const box = document.getElementById('fotoLista');
+  const arr = Object.entries(fotos).sort((a,b)=>(b[1].ts||0)-(a[1].ts||0));
+  if(!arr.length){
+    box.innerHTML = '<div class="nofoto"><b>Nenhuma foto ainda</b>A viagem começa quando a primeira foto chega. Vai na aba Enviar!</div>';
+    return;
+  }
+  let html = '', diaAtual = '';
+  arr.forEach(([id,f])=>{
+    const dia = fmtDia(f.ts);
+    if(dia !== diaAtual){
+      diaAtual = dia;
+      html += `<div class="dia-h"><span class="d">${dia}</span><span class="l"></span></div>`;
+    }
+    html += `<div class="foto-card">
+      <div class="stamp">${fmtCarimbo(f.ts)}</div>
+      <img src="${f.img}" loading="lazy">
+      <div class="f-body">
+        <div class="f-title">${esc(f.titulo)||'Sem título'}</div>
+        ${f.lugar?`<div class="f-place">📍 ${esc(f.lugar)}</div>`:''}
+        <div class="f-meta">${fmtData(f.ts)}${f.lat!=null?`<br>${f.lat.toFixed(5)}, ${f.lng.toFixed(5)}`:'<br>sem coordenadas'}</div>
+        <span class="f-author">${esc(f.autor)||'?'}</span>
+        <div class="f-acts">
+          ${f.lat!=null?`<button onclick="verNoMapa('${id}')">Ver no mapa</button>`:`<button onclick="pickParaFoto('${id}')">Marcar lugar</button>`}
+          <button onclick="editarFoto('${id}')">Editar</button>
+          <button class="del" onclick="apagarFoto('${id}')">Apagar</button>
+        </div>
+      </div>
+    </div>`;
+  });
+  box.innerHTML = html;
+}
+function pickParaFoto(id){ pickTarget = id; abrirPick(id); pickTarget = id; }
+function editarFoto(id){
+  editId = id;
+  document.getElementById('eTitulo').value = fotos[id].titulo || '';
+  document.getElementById('eLugar').value = fotos[id].lugar || '';
+  document.getElementById('mFoto').classList.add('on');
+}
+async function salvarEdicao(){
+  if(!editId) return;
+  await REF_FOTOS.child(editId).update({
+    titulo: document.getElementById('eTitulo').value.trim(),
+    lugar: document.getElementById('eLugar').value.trim()
+  });
+  fechar('mFoto'); toast('Foto atualizada');
+}
+async function apagarFoto(id){
+  if(!confirm('Apagar esta foto para todo mundo?')) return;
+  await REF_FOTOS.child(id).remove();
+  toast('Foto apagada');
+}
+
+/* ============ ROTEIRO ============ */
+function abrirRoteiro(id){
+  rotEditId = id || null;
+  document.getElementById('mRotTitle').textContent = id ? 'Editar dia' : 'Novo dia do roteiro';
+  document.getElementById('rData').value  = id ? roteiro[id].data : '';
+  document.getElementById('rCidade').value= id ? roteiro[id].cidade : '';
+  document.getElementById('rTxt').value   = id ? roteiro[id].txt : '';
+  document.getElementById('rHosp').value  = id ? (roteiro[id].hosp||'') : '';
+  document.getElementById('mRot').classList.add('on');
+}
+async function salvarRoteiro(){
+  const data = document.getElementById('rData').value;
+  const cidade = document.getElementById('rCidade').value.trim();
+  if(!data || !cidade){ toast('Preencha data e cidade'); return; }
+  const obj = {data, cidade, txt: document.getElementById('rTxt').value.trim(), hosp: document.getElementById('rHosp').value.trim()};
+  if(rotEditId) await REF_ROT.child(rotEditId).update(obj);
+  else await REF_ROT.push(obj);
+  fechar('mRot'); toast('Roteiro salvo');
+}
+async function apagarRoteiro(id){
+  if(!confirm('Apagar este dia do roteiro?')) return;
+  await REF_ROT.child(id).remove();
+}
+function renderRoteiro(){
+  const box = document.getElementById('rotLista');
+  const arr = Object.entries(roteiro).sort((a,b)=>a[1].data.localeCompare(b[1].data));
+  if(!arr.length){
+    box.innerHTML = '<div class="nofoto"><b>Roteiro vazio</b>Adicione os dias da viagem — pode mudar quantas vezes quiser, todo mundo vê na hora.</div>';
+    return;
+  }
+  const hoje = new Date().toISOString().slice(0,10);
+  box.innerHTML = arr.map(([id,r])=>{
+    const cls = r.data < hoje ? 'passado' : (r.data === hoje ? 'hoje' : '');
+    return `<div class="rot-card ${cls}">
+      <div class="rot-data">${fmtDiaISO(r.data)}${r.data===hoje?'<span class="hoje-tag">HOJE</span>':''}</div>
+      <div class="rot-cid">${esc(r.cidade)}</div>
+      ${r.txt?`<div class="rot-txt">${esc(r.txt)}</div>`:''}
+      ${r.hosp?`<div class="rot-hosp">🛏 ${esc(r.hosp)}</div>`:''}
+      <div class="rot-acts">
+        <button onclick="abrirRoteiro('${id}')">Editar</button>
+        <button style="color:var(--carimbo)" onclick="apagarRoteiro('${id}')">Apagar</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ============ UTILS ============ */
+function fechar(id){ document.getElementById(id).classList.remove('on'); }
+function toast(m){
+  const t = document.getElementById('toast');
+  t.textContent = m; t.style.display = 'block';
+  clearTimeout(t._h); t._h = setTimeout(()=>t.style.display='none', 2600);
+}
+function esc(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+const MESES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+const DIAS = ['domingo','segunda','terça','quarta','quinta','sexta','sábado'];
+function fmtData(ts){
+  if(!ts) return '—';
+  const d = new Date(ts);
+  return `${String(d.getDate()).padStart(2,'0')} ${MESES[d.getMonth()]} ${d.getFullYear()} · ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+function fmtDia(ts){
+  const d = new Date(ts);
+  return `${DIAS[d.getDay()]}, ${String(d.getDate()).padStart(2,'0')} ${MESES[d.getMonth()]} ${d.getFullYear()}`;
+}
+function fmtCarimbo(ts){
+  const d = new Date(ts);
+  return `${String(d.getDate()).padStart(2,'0')}.${MESES[d.getMonth()].toUpperCase()}.${d.getFullYear()}`;
+}
+function fmtDiaISO(iso){
+  const [y,m,dd] = iso.split('-').map(Number);
+  const d = new Date(y, m-1, dd);
+  return `${DIAS[d.getDay()]} · ${String(dd).padStart(2,'0')} ${MESES[m-1]} ${y}`;
+}
+document.querySelectorAll('.modal').forEach(m=>m.addEventListener('click', e=>{ if(e.target===m) m.classList.remove('on'); }));
+document.getElementById('gName').addEventListener('keydown', e=>{ if(e.key==='Enter') entrar(); });
+</script>
+</body>
+</html>

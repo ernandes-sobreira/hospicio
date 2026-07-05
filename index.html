@@ -32,7 +32,12 @@ input,textarea,select{font-family:var(--body);font-size:15px}
 }
 
 /* ---------- PORTÃO (senha) ---------- */
-#gate{position:fixed;inset:0;background-color:var(--tinta);display:flex;align-items:center;justify-content:center;z-index:9000;padding:24px}
+#gate{position:fixed;inset:0;
+  background:
+    linear-gradient(180deg, rgba(22,50,74,.45) 0%, rgba(22,50,74,.75) 55%, var(--tinta) 92%),
+    url('capa-familia.jpg') center 22%/cover no-repeat,
+    var(--tinta);
+  display:flex;align-items:flex-end;justify-content:center;z-index:9000;padding:24px}
 .passaporte{background:var(--papel);border-radius:14px;padding:34px 26px;max-width:360px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.4)}
 .stamp-title{display:inline-block;border:3px solid var(--carimbo);color:var(--carimbo);border-radius:8px;padding:8px 16px;transform:rotate(-3deg);font-family:var(--disp);font-weight:800;font-size:20px;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px}
 .passaporte h1{font-family:var(--disp);font-weight:800;font-size:26px;line-height:1.15;margin:12px 0 4px}
@@ -44,7 +49,9 @@ input,textarea,select{font-family:var(--body);font-size:15px}
 #gateErr{color:var(--carimbo);font-size:13px;margin-top:10px;display:none}
 
 /* ---------- CABEÇALHO ---------- */
-header{background-color:var(--tinta);color:#fff;padding:14px 16px 12px;position:sticky;top:0;z-index:1200}
+header{background-color:var(--tinta);color:#fff;padding:14px 16px 12px;position:sticky;top:0;z-index:1200;display:flex;align-items:center;gap:12px}
+header .selo{width:42px;height:42px;border-radius:50%;object-fit:cover;border:2px solid var(--sol);flex-shrink:0}
+header .txt{flex:1;min-width:0}
 header .eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--sol);text-transform:uppercase}
 header h1{font-family:var(--disp);font-weight:800;font-size:20px;line-height:1.1}
 header .who{font-size:11px;color:#B9CBD8;margin-top:2px}
@@ -160,7 +167,7 @@ main{padding:14px 14px 90px;max-width:760px;margin:0 auto}
 <body>
 
 <!-- PORTÃO -->
-<div id="gate" class="marca-forte">
+<div id="gate">
   <div class="passaporte">
     <div class="stamp-title">Hospício</div>
     <h1>Bühler-Sobreira</h1>
@@ -173,9 +180,12 @@ main{padding:14px 14px 90px;max-width:760px;margin:0 auto}
 </div>
 
 <header class="marca-forte">
-  <div class="eyebrow">Diário de Viagem</div>
-  <h1>Hospício Bühler-Sobreira</h1>
-  <div class="who" id="whoami"></div>
+  <img src="selo-zumbi.jpg" alt="" class="selo">
+  <div class="txt">
+    <div class="eyebrow">Diário de Viagem</div>
+    <h1>Hospício Bühler-Sobreira</h1>
+    <div class="who" id="whoami"></div>
+  </div>
 </header>
 
 <main>

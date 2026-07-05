@@ -22,12 +22,17 @@
   --mono:'IBM Plex Mono',monospace;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{font-family:var(--body);background:var(--papel);color:var(--tinta);min-height:100vh;font-size:15px}
+body{font-family:var(--body);background-color:var(--papel);
+  background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120"><g transform="rotate(18 60 60)" fill="none" stroke="rgba(22,50,74,0.05)" stroke-width="3"><rect x="38" y="30" width="44" height="56" rx="14"/><line x1="38" y1="34" x2="82" y2="82"/><line x1="82" y1="34" x2="38" y2="82"/><circle cx="38" cy="34" r="4" fill="rgba(22,50,74,0.05)" stroke="none"/><circle cx="82" cy="34" r="4" fill="rgba(22,50,74,0.05)" stroke="none"/><circle cx="38" cy="82" r="4" fill="rgba(22,50,74,0.05)" stroke="none"/><circle cx="82" cy="82" r="4" fill="rgba(22,50,74,0.05)" stroke="none"/></g></svg>');
+  color:var(--tinta);min-height:100vh;font-size:15px}
 button{font-family:var(--body);cursor:pointer}
 input,textarea,select{font-family:var(--body);font-size:15px}
+.marca-forte{
+  background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="90" height="90"><g transform="rotate(18 45 45)" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="2.5"><rect x="28" y="22" width="34" height="42" rx="11"/><line x1="28" y1="25" x2="62" y2="61"/><line x1="62" y1="25" x2="28" y2="61"/><circle cx="28" cy="25" r="3" fill="rgba(255,255,255,0.07)" stroke="none"/><circle cx="62" cy="25" r="3" fill="rgba(255,255,255,0.07)" stroke="none"/><circle cx="28" cy="61" r="3" fill="rgba(255,255,255,0.07)" stroke="none"/><circle cx="62" cy="61" r="3" fill="rgba(255,255,255,0.07)" stroke="none"/></g></svg>');
+}
 
 /* ---------- PORTÃO (senha) ---------- */
-#gate{position:fixed;inset:0;background:var(--tinta);display:flex;align-items:center;justify-content:center;z-index:9000;padding:24px}
+#gate{position:fixed;inset:0;background-color:var(--tinta);display:flex;align-items:center;justify-content:center;z-index:9000;padding:24px}
 .passaporte{background:var(--papel);border-radius:14px;padding:34px 26px;max-width:360px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.4)}
 .stamp-title{display:inline-block;border:3px solid var(--carimbo);color:var(--carimbo);border-radius:8px;padding:8px 16px;transform:rotate(-3deg);font-family:var(--disp);font-weight:800;font-size:20px;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px}
 .passaporte h1{font-family:var(--disp);font-weight:800;font-size:26px;line-height:1.15;margin:12px 0 4px}
@@ -39,7 +44,7 @@ input,textarea,select{font-family:var(--body);font-size:15px}
 #gateErr{color:var(--carimbo);font-size:13px;margin-top:10px;display:none}
 
 /* ---------- CABEÇALHO ---------- */
-header{background:var(--tinta);color:#fff;padding:14px 16px 12px;position:sticky;top:0;z-index:1200}
+header{background-color:var(--tinta);color:#fff;padding:14px 16px 12px;position:sticky;top:0;z-index:1200}
 header .eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--sol);text-transform:uppercase}
 header h1{font-family:var(--disp);font-weight:800;font-size:20px;line-height:1.1}
 header .who{font-size:11px;color:#B9CBD8;margin-top:2px}
@@ -54,7 +59,13 @@ main{padding:14px 14px 90px;max-width:760px;margin:0 auto}
 .tab.on{display:block}
 
 /* ---------- MAPA ---------- */
-#map{height:calc(100vh - 210px);min-height:380px;border-radius:14px;border:2px solid var(--tinta);z-index:1}
+#map{height:calc(100vh - 300px);min-height:300px;border-radius:14px;border:2px solid var(--tinta);z-index:1}
+#filminha{display:flex;gap:8px;overflow-x:auto;padding:10px 2px;scroll-behavior:smooth}
+#filminha::-webkit-scrollbar{display:none}
+.film-item{flex-shrink:0;width:64px;height:64px;border-radius:10px;overflow:hidden;border:2.5px solid transparent;position:relative}
+.film-item img{width:100%;height:100%;object-fit:cover;display:block}
+.film-item.on{border-color:var(--carimbo)}
+.film-item .sem{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#EEE;color:var(--tinta2);font-size:16px}
 .map-bar{display:flex;gap:8px;margin-bottom:10px;align-items:center;flex-wrap:wrap}
 .chip{border:1.5px solid var(--tinta);background:#fff;color:var(--tinta);border-radius:20px;padding:7px 14px;font-size:12.5px;font-weight:600}
 .chip.on{background:var(--tinta);color:#fff}
@@ -77,6 +88,18 @@ main{padding:14px 14px 90px;max-width:760px;margin:0 auto}
 .f-acts{display:flex;gap:8px;margin-top:10px}
 .f-acts button{flex:1;border:1.5px solid var(--linha);background:#fff;border-radius:8px;padding:8px;font-size:12px;font-weight:600;color:var(--tinta)}
 .f-acts .del{color:var(--carimbo);border-color:#F0C8C2}
+.reacoes{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.reac-btn{border:1.5px solid var(--linha);background:#fff;border-radius:20px;padding:5px 10px;font-size:14px;display:flex;align-items:center;gap:5px}
+.reac-btn .n{font-family:var(--mono);font-size:11px;color:var(--tinta2)}
+.reac-btn.minha{border-color:var(--carimbo);background:#FDEDEA}
+.reac-btn.minha .n{color:var(--carimbo)}
+.coment-toggle{background:none;border:none;color:var(--tinta2);font-size:12px;font-weight:600;padding:6px 0;text-decoration:underline}
+.coment-box{margin-top:8px;border-top:1px solid var(--linha);padding-top:10px}
+.coment-item{font-size:13px;margin-bottom:6px;line-height:1.4}
+.coment-item b{font-weight:600}
+.coment-form{display:flex;gap:8px;margin-top:6px}
+.coment-form input{flex:1;padding:9px 11px;border:1.5px solid var(--linha);border-radius:20px;background:#fff}
+.coment-form button{border:none;background:var(--tinta);color:#fff;border-radius:20px;padding:0 16px;font-size:13px;font-weight:600}
 .stamp{position:absolute;top:10px;right:10px;border:2.5px solid var(--carimbo);color:var(--carimbo);background:rgba(255,255,255,.88);border-radius:6px;padding:4px 9px;transform:rotate(4deg);font-family:var(--mono);font-size:11px;font-weight:500}
 .nofoto{text-align:center;color:var(--tinta2);padding:50px 20px;font-size:14px;line-height:1.6}
 .nofoto b{font-family:var(--disp);display:block;font-size:18px;color:var(--tinta);margin-bottom:6px}
@@ -137,7 +160,7 @@ main{padding:14px 14px 90px;max-width:760px;margin:0 auto}
 <body>
 
 <!-- PORTÃO -->
-<div id="gate">
+<div id="gate" class="marca-forte">
   <div class="passaporte">
     <div class="stamp-title">Hospício</div>
     <h1>Bühler-Sobreira</h1>
@@ -149,7 +172,7 @@ main{padding:14px 14px 90px;max-width:760px;margin:0 auto}
   </div>
 </div>
 
-<header>
+<header class="marca-forte">
   <div class="eyebrow">Diário de Viagem</div>
   <h1>Hospício Bühler-Sobreira</h1>
   <div class="who" id="whoami"></div>
@@ -163,6 +186,7 @@ main{padding:14px 14px 90px;max-width:760px;margin:0 auto}
       <span style="font-family:var(--mono);font-size:11px;color:var(--tinta2)" id="mapCount"></span>
     </div>
     <div id="map"></div>
+    <div id="filminha"></div>
   </section>
 
   <!-- ROTEIRO -->
@@ -330,16 +354,40 @@ function desenharMapa(){
     .sort((a,b) => (a[1].ts||0) - (b[1].ts||0));
   document.getElementById('mapCount').textContent = comGps.length + ' foto(s) no mapa';
   const pts = [];
+  markerRefs = {};
   comGps.forEach(([id,f])=>{
     pts.push([f.lat, f.lng]);
     const mk = L.marker([f.lat, f.lng]);
     mk.bindPopup(`<div class="pop"><img src="${f.img}"><b>${esc(f.titulo)||'Sem título'}</b><span class="m">${fmtData(f.ts)} · ${f.autor?esc(f.autor):''}</span><span class="m">${f.lat.toFixed(5)}, ${f.lng.toFixed(5)}</span>${f.lugar?`<span class="m" style="color:var(--verde)">${esc(f.lugar)}</span>`:''}</div>`);
+    mk.on('click', ()=>marcarFilmAtiva(id));
     markersLayer.addLayer(mk);
+    markerRefs[id] = mk;
   });
   if(mostrarTrajeto && pts.length > 1){
     trajetoLine = L.polyline(pts, {color:'#D33F2E', weight:3, dashArray:'6 8'}).addTo(map);
   }
   if(pts.length){ map.fitBounds(L.latLngBounds(pts).pad(0.2)); }
+  renderFilminha(comGps);
+}
+let markerRefs = {};
+function renderFilminha(comGps){
+  const box = document.getElementById('filminha');
+  if(!comGps || !comGps.length){ box.innerHTML = ''; return; }
+  box.innerHTML = comGps.map(([id,f])=>
+    `<div class="film-item" id="film-${id}" onclick="voarPara('${id}')"><img src="${f.img}" loading="lazy"></div>`
+  ).join('');
+}
+function voarPara(id){
+  const f = fotos[id];
+  if(!f || f.lat==null) return;
+  map.flyTo([f.lat,f.lng], 14);
+  markerRefs[id] && markerRefs[id].openPopup();
+  marcarFilmAtiva(id);
+}
+function marcarFilmAtiva(id){
+  document.querySelectorAll('.film-item').forEach(e=>e.classList.remove('on'));
+  const el = document.getElementById('film-'+id);
+  if(el){ el.classList.add('on'); el.scrollIntoView({inline:'center', behavior:'smooth', block:'nearest'}); }
 }
 function verNoMapa(id){
   const f = fotos[id];
@@ -544,6 +592,7 @@ async function confirmarPick(){
 }
 
 /* ============ GALERIA ============ */
+const REACOES = ['❤️','😂','😮','😢','🔥','👏'];
 function renderFotos(){
   const box = document.getElementById('fotoLista');
   const arr = Object.entries(fotos).sort((a,b)=>(b[1].ts||0)-(a[1].ts||0));
@@ -551,6 +600,7 @@ function renderFotos(){
     box.innerHTML = '<div class="nofoto"><b>Nenhuma foto ainda</b>A viagem começa quando a primeira foto chega. Vai na aba Enviar!</div>';
     return;
   }
+  const eu = localStorage.getItem('hbs_nome') || '';
   let html = '', diaAtual = '';
   arr.forEach(([id,f])=>{
     const dia = fmtDia(f.ts);
@@ -558,6 +608,16 @@ function renderFotos(){
       diaAtual = dia;
       html += `<div class="dia-h"><span class="d">${dia}</span><span class="l"></span></div>`;
     }
+    const reac = f.reacoes || {};
+    const contagem = {};
+    Object.values(reac).forEach(e=>{ contagem[e] = (contagem[e]||0)+1; });
+    const minhaReac = reac[eu];
+    const barraReac = REACOES.filter(e=>contagem[e]).map(e=>
+      `<button class="reac-btn ${e===minhaReac?'minha':''}" onclick="toggleReacao('${id}','${e}')">${e}<span class="n">${contagem[e]}</span></button>`
+    ).join('') + REACOES.filter(e=>!contagem[e]).map(e=>
+      `<button class="reac-btn" onclick="toggleReacao('${id}','${e}')">${e}</button>`
+    ).join('');
+    const coments = f.comentarios ? Object.entries(f.comentarios).sort((a,b)=>a[1].ts-b[1].ts) : [];
     html += `<div class="foto-card">
       <div class="stamp">${fmtCarimbo(f.ts)}</div>
       <img src="${f.img}" loading="lazy">
@@ -571,10 +631,38 @@ function renderFotos(){
           <button onclick="editarFoto('${id}')">Editar</button>
           <button class="del" onclick="apagarFoto('${id}')">Apagar</button>
         </div>
+        <div class="reacoes">${barraReac}</div>
+        <button class="coment-toggle" onclick="toggleComentBox('${id}')">${coments.length ? coments.length+' comentário(s)' : 'Comentar'}</button>
+        <div class="coment-box" id="cb-${id}" style="display:none">
+          ${coments.map(([cid,c])=>`<div class="coment-item"><b>${esc(c.autor)}:</b> ${esc(c.texto)}</div>`).join('')}
+          <div class="coment-form">
+            <input type="text" id="ci-${id}" placeholder="Escreva ou solte um emoji 🐊🌵">
+            <button onclick="enviarComentario('${id}')">Enviar</button>
+          </div>
+        </div>
       </div>
     </div>`;
   });
   box.innerHTML = html;
+}
+function toggleComentBox(id){
+  const el = document.getElementById('cb-'+id);
+  el.style.display = el.style.display==='none' ? 'block' : 'none';
+}
+async function toggleReacao(id, emoji){
+  const eu = localStorage.getItem('hbs_nome') || 'Alguém';
+  const atual = (fotos[id] && fotos[id].reacoes) ? fotos[id].reacoes[eu] : null;
+  const ref = REF_FOTOS.child(id).child('reacoes').child(eu);
+  if(atual === emoji) await ref.remove();
+  else await ref.set(emoji);
+}
+async function enviarComentario(id){
+  const input = document.getElementById('ci-'+id);
+  const texto = input.value.trim();
+  if(!texto) return;
+  const autor = localStorage.getItem('hbs_nome') || 'Alguém';
+  await REF_FOTOS.child(id).child('comentarios').push({autor, texto, ts: Date.now()});
+  input.value = '';
 }
 function pickParaFoto(id){ pickTarget = id; abrirPick(id); pickTarget = id; }
 function editarFoto(id){
